@@ -42,3 +42,21 @@ SHIFT_ATCP_revised/*.log
 # ---- override: keep v2 LaTeX sources ----
 !SHIFT_ATCP_revised/methodology.tex
 !SHIFT_ATCP_revised/references.bib
+
+# ---- Allow result CSVs in the repo (results are deliverables) ----
+!SHIFT_ATCP_revised/results/
+!SHIFT_ATCP_revised/results/brfss_to_nhanes/
+!SHIFT_ATCP_revised/results/brfss_to_nhanes/*.csv
+!SHIFT_ATCP_revised/results/brfss_to_nhanes/*.json
+!SHIFT_ATCP_revised/results/brfss_to_nhanes_surveyweighted/
+!SHIFT_ATCP_revised/results/brfss_to_nhanes_surveyweighted/*.csv
+!SHIFT_ATCP_revised/results/brfss_to_nhanes_surveyweighted/*.json
+!SHIFT_ATCP_revised/results/controlled_shift/
+!SHIFT_ATCP_revised/results/controlled_shift/*.csv
+!SHIFT_ATCP_revised/results/brfss_nhanes/
+!SHIFT_ATCP_revised/results/brfss_nhanes/*.csv
+
+# But STILL exclude the huge ones
+SHIFT_ATCP_revised/results/**/split_manifest.csv
+SHIFT_ATCP_revised/results/**/*.joblib
+SHIFT_ATCP_revised/results/**/models/
