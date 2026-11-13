@@ -27,3 +27,18 @@ overleaf*/
 *.fls
 *.fdb_latexmk
 *.synctex.gz
+
+# ---- v2 SHIFT_ATCP_revised artifacts ----
+SHIFT_ATCP_revised/data/raw/
+SHIFT_ATCP_revised/data/processed/
+SHIFT_ATCP_revised/results/
+SHIFT_ATCP_revised/__pycache__/
+SHIFT_ATCP_revised/.pytest_cache/
+SHIFT_ATCP_revised/*.log
+**/__pycache__/
+*.pyc
+*.joblib
+
+# ---- override: keep v2 LaTeX sources ----
+!SHIFT_ATCP_revised/methodology.tex
+!SHIFT_ATCP_revised/references.bib

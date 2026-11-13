@@ -1,0 +1,213 @@
+% Revised methodology draft for the SHIFT-ATCP manuscript.
+% All numerical results must be regenerated from the revised pipeline.
+
+\section{Study Design and Cohort Harmonization}
+\label{sec:study_design}
+
+We reformulate the study as a cross-survey transportability analysis rather than
+using a source cohort with undocumented clinical provenance. The primary source
+cohort is the 2023 Behavioral Risk Factor Surveillance System (BRFSS), and the
+external target cohort is the 2017--2018 National Health and Nutrition
+Examination Survey (NHANES). BRFSS is a large, repeated cross-sectional
+telephone survey; the CDC reports 433,323 records for the 2023 annual file \cite{CDC_BRFSS_2023}.
+The raw survey files, codebooks, release dates, and preprocessing scripts are
+retained to make the cohort construction auditable. The Pima Indians Diabetes
+Dataset is retained only as a secondary, small-sample stress test and is not
+used to support population-representative claims.
+
+The primary outcome is \emph{self-reported clinician-diagnosed diabetes}.
+BRFSS respondents coded as having been told they have diabetes are positive;
+respondents reporting no diabetes are negative. Pregnancy-only diabetes,
+pre-diabetes/borderline responses, refusal, and unknown responses are excluded.
+NHANES uses the corresponding self-reported diagnosis item (DIQ010), with
+positive and negative responses retained and borderline, unknown, refused, and
+missing responses excluded. This outcome does not represent all diabetes,
+because undiagnosed laboratory-defined diabetes is not captured. A separate
+laboratory-defined outcome analysis, if conducted, must exclude the diagnostic
+laboratory measurements from the predictors.
+
+Both cohorts are restricted to adults aged 20 years or older to align the
+NHANES adult questionnaire variables. The prespecified common predictor set is
+age, sex (female indicator), body-mass index, self-reported hypertension,
+heart-disease history, and ever-smoking history. The BRFSS BMI variable is
+converted from its stored two-decimal representation to kg/m$^2$. Hypertension
+is positive only for an affirmative non-pregnancy response; negative responses
+are coded zero, while pregnancy-only, borderline/pre-hypertension, unknown,
+and refused responses are treated as missing. Heart-disease history is positive
+if either prior myocardial infarction or coronary heart disease/angina is
+reported, negative only if both component questions are negative, and otherwise
+missing. Smoking history indicates having smoked at least 100 cigarettes.
+Definitions and missing-value rules are fixed before model fitting and applied
+identically in both cohorts \cite{CDC_BRFSS_CV_2023,NCHS_NHANES_2017_2018}. No predictor is created as an all-missing column
+in either cohort.
+
+BRFSS design variables (_LLCPWT, _STSTR, _PSU) and NHANES interview weights,
+strata, and primary sampling units (WTINT2YR, SDMVSTRA, SDMVPSU) are retained.
+The primary machine-learning and conformal analysis is an individual-level
+analytic-sample analysis. Survey-weighted test metrics and PSU-within-stratum
+cluster-bootstrap intervals are reported as a sensitivity analysis. Because
+the primary random split is at the respondent level, this cluster bootstrap is
+an approximation rather than a complete design-based variance estimator.
+Moreover, survey weights are not incorporated into model fitting,
+density-ratio estimation, or conformal calibration. Weighted summaries are
+therefore not interpreted as a full design-based conformal coverage guarantee.
+
+\section{Leakage-Controlled Experimental Protocol}
+\label{sec:protocol}
+
+For each random seed, the source cohort is split into 60\% model training,
+10\% probability-calibration fitting, and 30\% source conformal calibration.
+The source probability calibrator is fitted only on the second partition, and
+source conformal scores are computed only on the third partition. The target
+cohort is randomly partitioned without using its labels to allocate rows:
+15\% unlabeled covariate adaptation, 15\% labelled method-gating, 20\%
+target-model training, 10\% target-model probability calibration, 20\%
+target conformal calibration, and 20\% final test. The target adaptation
+partition is used only for covariate-shift estimation. Target-test covariates are
+queried only to obtain their pointwise density ratios (a transductive use of
+unlabelled test features); target-test labels remain inaccessible until final
+evaluation. Target labels are used
+only in the explicitly identified gate, target-trained reference, calibration,
+and conformal-calibration partitions. The final test labels are not used for
+fitting, calibration, gating, hyperparameter selection, or method selection.
+
+A source-trained classifier $f_\theta$ is fitted on source training data. Its
+probability output is calibrated by an independent Platt map $g_\phi$ fitted on
+the source probability-calibration partition:
+\begin{equation}
+  \widehat p(x)=g_\phi(f_\theta(x)).
+\end{equation}
+For a labelled calibration observation $(x_i,y_i)$, the nonconformity score is
+\begin{equation}
+  s_i=1-\widehat p_{y_i}(x_i),\qquad
+  \widehat p_1(x)=\widehat p(x),\quad
+  \widehat p_0(x)=1-\widehat p(x).
+\end{equation}
+For $n$ calibration scores, the ordinary split-conformal threshold is the
+$\lceil(n+1)(1-\alpha)\rceil$-th order statistic, with threshold $+\infty$ if
+the requested order statistic exceeds the available calibration sample.
+
+\section{Shift Diagnostics and Importance-Weighted Baseline}
+\label{sec:shift_diagnostics}
+
+Shift is quantified on the same prespecified common predictors in both cohorts.
+For each predictor, we report source and target missingness separately and
+calculate the population stability index (PSI) on shared bins:
+\begin{equation}
+  \mathrm{PSI}=\sum_b (p_{T,b}-p_{S,b})\log\frac{p_{T,b}}{p_{S,b}}
+  =D_{\mathrm{KL}}(p_T\Vert p_S)+D_{\mathrm{KL}}(p_S\Vert p_T).
+\end{equation}
+We verify this identity numerically and report both KL terms, rather than
+presenting incompatible values. A cross-validated domain classifier is trained
+on observed values of the common predictors; missingness-rate differences are
+reported separately so that missing-feature artifacts are not silently
+interpreted as biological covariate shift. The out-of-fold domain AUC and
+importance-weight effective sample size are reported for every run.
+
+As a comparator, we estimate the density ratio
+$r(x)=p_T(x)/p_S(x)$ using a cross-fitted domain classifier. If
+$e(x)=P(D=T\mid X=x)$ is estimated by a domain classifier with balanced
+domain-class weights, then
+\begin{equation}
+ \widehat r(x)=\frac{\widehat e(x)}{1-\widehat e(x)}.
+\end{equation}
+The domain classifier is fitted with balanced domain-class weights, so that its
+effective source and target priors are equal; the prior-odds correction is
+therefore one.
+Weights are clipped only at prespecified bounds, and clipping fractions and
+weight effective sample size are reported. For a test point $x$, the
+importance-weighted source threshold is
+\begin{equation}
+ \widehat q_{IW}(x)=\inf\left\{q:
+ \sum_{i\in S_{cal}}\widehat r(x_i)\,\mathbb{I}(s_i\le q)
+ \ge (1-\alpha)\left[\sum_{i\in S_{cal}}\widehat r(x_i)+\widehat r(x)\right]
+ \right\}.
+\end{equation}
+If the required mass exceeds the observed calibration mass, the threshold is
+$+\infty$. The test-point weight is therefore included explicitly. This
+construction has a finite-sample weighted-conformal interpretation when the
+true density ratios are known and the covariate-shift assumption
+$P_T(Y\mid X)=P_S(Y\mid X)$ holds. In this study the ratios are estimated, so
+we describe the resulting method as an approximate importance-weighted
+baseline and do not claim an exact finite-sample coverage guarantee.
+
+\section{Calibration-Gated SHIFT-ATCP}
+\label{sec:shift_atcp}
+
+The revised SHIFT-ATCP is a calibration-gated transport procedure, not the
+previous scalar source-trust formula. It compares the importance-weighted
+source threshold with target-only split conformal using a labelled target gate
+partition that is disjoint from target conformal calibration and final test.
+Let $G$ denote the gate set. The weighted-source candidate is accepted only if
+(i) its one-sided 90\% Wilson lower confidence bound for gate coverage is at
+least $1-\alpha-\delta$, and (ii) its gate mean prediction-set size is at
+least $\eta$ smaller than that of the target-only marginal conformal baseline.
+The constants $\delta$ and $\eta$ are prespecified and varied in sensitivity
+analysis. Otherwise, SHIFT-ATCP falls back to the target-only threshold:
+\begin{equation}
+ \widehat q_{SHIFT}(x)=
+ \begin{cases}
+   \widehat q_{IW}(x), & \mathrm{Gate}(G)=1,\\
+   \widehat q_T, & \mathrm{Gate}(G)=0.
+ \end{cases}
+\end{equation}
+The gate is evaluated only on its designated target partition. It is not
+re-evaluated or modified using final test labels. A high fallback frequency is
+reported as evidence that source transport was not supported by the available
+calibration data, rather than being presented as a successful source-transfer
+result. The method is not expected to outperform target-only calibration in
+every cohort; any claimed benefit must be supported by the complete external
+results grid and controlled shift experiments.
+
+\section{Class-Conditional Conformal Baseline and Target-Trained Reference}
+\label{sec:mondrian}
+
+To prevent marginal coverage from concealing poor diabetes-positive coverage,
+we include ordinary target-only Mondrian conformal prediction as a primary
+baseline. Separate target calibration quantiles are computed within each true
+class:
+\begin{equation}
+ q_{T,k}=\mathrm{Quantile}_{1-\alpha}
+ \{1-\widehat p_k(x_i): i\in T_{conf}, y_i=k\},\quad k\in\{0,1\}.
+\end{equation}
+The prediction set is
+\begin{equation}
+ \Gamma(x)=\{k\in\{0,1\}:1-\widehat p_k(x)\le q_{T,k}\}.
+\end{equation}
+This is the direct class-conditional baseline and replaces heuristic claims
+based solely on a custom class-conditional selection score. We additionally
+train a target-supervised reference classifier on the separate target training
+partition, calibrate it on target calibration-fit data, and conformal-calibrate
+it on target conformal-calibration data. This reference quantifies the
+performance gap between source transport and a model trained with target labels;
+it is not presented as a label-free transport method.
+
+\section{Evaluation, Uncertainty, and Sensitivity Analysis}
+\label{sec:evaluation}
+
+Every model, method, seed, and cost vector is retained in the results grid.
+No best model, feature set, or scenario is selected by final target-test
+metrics. We report marginal coverage, class-0 coverage, diabetes-positive
+coverage, absolute class-coverage gap, mean set size, singleton rate, empty-set
+rate, referral rate, false-positive and false-negative singleton rates, Brier
+score, AUROC, and 10-bin expected calibration error. Clinical referral cost is
+computed from an explicit action rule: singleton sets trigger the corresponding
+class prediction, while empty or two-class sets are referred. We vary the
+false-positive, false-negative, and referral costs over prespecified vectors.
+
+For each seed and method, percentile bootstrap intervals are computed for
+marginal and class-specific coverage, class-coverage gap, set size, referral
+rate, and clinical cost. When survey design variables are supplied, the
+sensitivity analysis resamples primary sampling units within strata; otherwise
+participant-row bootstrap intervals are reported. Repeated random seeds are
+used to quantify split variability, and all seed-level results are released.
+The main tables retain model and configuration identifiers rather than
+averaging across unrelated models, feature sets, or scenarios.
+
+Additional analyses include calibration-sample-size sensitivity, density-ratio
+clipping and effective-sample-size sensitivity, gate-tolerance sensitivity,
+controlled covariate-shift experiments where $P(Y\mid X)$ is fixed, and
+prevalence/label-shift experiments where the covariate-shift assumption is
+violated. Pima results are reported separately as a small, female-only
+stress-test cohort. Population-level interpretations are avoided unless the
+survey design is handled consistently throughout the corresponding analysis.
