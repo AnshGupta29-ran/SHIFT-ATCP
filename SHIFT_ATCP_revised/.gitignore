@@ -1,10 +1,15 @@
 __pycache__/
-.pytest_cache/
-.venv/
 *.py[cod]
-data/raw/*
-!data/raw/.gitkeep
-data/processed/*
-!data/processed/.gitkeep
-results/*
-!results/.gitkeep
+.pytest_cache/
+*.log
+
+# Data: reproducible from raw CDC downloads, never commit
+data/raw/
+data/processed/
+
+# Models: regenerable, large
+results/**/models/
+results/**/*.joblib
+
+# Split manifest: 90 MB, reproducible from seeds
+results/**/split_manifest.csv

@@ -1,0 +1,74 @@
+{
+  "source_file": "data/processed/brfss_2023_harmonized.csv",
+  "target_file": "data/processed/nhanes_2017_2018_harmonized.csv",
+  "source_sha256": "3cc09d1d990e23dfd4ecbe8ff96c27c08a05920c100f8a30f9a61c953256594b",
+  "target_sha256": "8e4b478cd5afc4b18cb48a440d49fcdd4165f6c9de83e974896c3f5b3fb0864a",
+  "features": [
+    "age",
+    "female",
+    "bmi",
+    "hypertension",
+    "heart_disease",
+    "smoking_history"
+  ],
+  "label": "diabetes",
+  "models": "logistic,random_forest,hist_gradient_boosting",
+  "seeds": "42,43,44,45,46,47,48,49,50,51",
+  "target_split_fractions": [
+    0.15,
+    0.15,
+    0.2,
+    0.1,
+    0.2,
+    0.2
+  ],
+  "alpha": 0.1,
+  "bootstrap": 1000,
+  "weight_clip": [
+    0.05,
+    20.0
+  ],
+  "gate_tolerance": 0.05,
+  "min_efficiency_gain": 0.02,
+  "cost_vectors": {
+    "default": [
+      1.0,
+      5.0,
+      0.5
+    ],
+    "balanced": [
+      1.0,
+      2.0,
+      0.5
+    ],
+    "high_referral": [
+      1.0,
+      5.0,
+      1.0
+    ]
+  },
+  "python": "3.11.18",
+  "source_rows": 411785,
+  "target_rows": 5393,
+  "source_prevalence": 0.14499071117209222,
+  "target_prevalence": 0.16243278323753013,
+  "source_predictor_missingness": {
+    "age": 0.0,
+    "female": 0.0,
+    "bmi": 0.09297570334033536,
+    "hypertension": 0.019927874983304394,
+    "heart_disease": 0.009769661352404774,
+    "smoking_history": 0.05211457435312117
+  },
+  "target_predictor_missingness": {
+    "age": 0.0,
+    "female": 0.0,
+    "bmi": 0.07101798627850918,
+    "hypertension": 0.0018542555164101613,
+    "heart_disease": 0.006304468755794548,
+    "smoking_history": 0.0
+  },
+  "target_survey_design": true,
+  "selection_rule": "SHIFT-ATCP gate is determined on a labelled target gate partition; final test labels are never used.",
+  "coverage_note": "Known-ratio weighted conformal has a covariate-shift guarantee; estimated density ratios make source-weighted results approximate. Target-only split conformal/Mondrian is the validity baseline."
+}

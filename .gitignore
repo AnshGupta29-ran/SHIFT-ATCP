@@ -28,35 +28,18 @@ overleaf*/
 *.fdb_latexmk
 *.synctex.gz
 
-# ---- v2 SHIFT_ATCP_revised artifacts ----
-SHIFT_ATCP_revised/data/raw/
-SHIFT_ATCP_revised/data/processed/
-SHIFT_ATCP_revised/results/
+# ---- v2 SHIFT_ATCP_revised: only these are excluded ----
+# (inner SHIFT_ATCP_revised/.gitignore handles data/ and models/)
 SHIFT_ATCP_revised/__pycache__/
+SHIFT_ATCP_revised/**/__pycache__/
 SHIFT_ATCP_revised/.pytest_cache/
 SHIFT_ATCP_revised/*.log
-**/__pycache__/
-*.pyc
-*.joblib
 
-# ---- override: keep v2 LaTeX sources ----
+# Keep v2 LaTeX sources despite the *.tex / *.bib rules above
 !SHIFT_ATCP_revised/methodology.tex
 !SHIFT_ATCP_revised/references.bib
 
-# ---- Allow result CSVs in the repo (results are deliverables) ----
-!SHIFT_ATCP_revised/results/
-!SHIFT_ATCP_revised/results/brfss_to_nhanes/
-!SHIFT_ATCP_revised/results/brfss_to_nhanes/*.csv
-!SHIFT_ATCP_revised/results/brfss_to_nhanes/*.json
-!SHIFT_ATCP_revised/results/brfss_to_nhanes_surveyweighted/
-!SHIFT_ATCP_revised/results/brfss_to_nhanes_surveyweighted/*.csv
-!SHIFT_ATCP_revised/results/brfss_to_nhanes_surveyweighted/*.json
-!SHIFT_ATCP_revised/results/controlled_shift/
-!SHIFT_ATCP_revised/results/controlled_shift/*.csv
-!SHIFT_ATCP_revised/results/brfss_nhanes/
-!SHIFT_ATCP_revised/results/brfss_nhanes/*.csv
-
-# But STILL exclude the huge ones
-SHIFT_ATCP_revised/results/**/split_manifest.csv
-SHIFT_ATCP_revised/results/**/*.joblib
-SHIFT_ATCP_revised/results/**/models/
+# Backups
+.git.backup/
+.git.backup2/
+.gitignore.before-results-fix
