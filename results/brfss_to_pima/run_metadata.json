@@ -1,0 +1,65 @@
+{
+  "source_file": "data/processed/brfss_2023_harmonized.csv",
+  "target_file": "data/processed/pima_harmonized.csv",
+  "source_sha256": "3cc09d1d990e23dfd4ecbe8ff96c27c08a05920c100f8a30f9a61c953256594b",
+  "target_sha256": "636acfaab194fac49c78458a253789430b30cfd71b5cc1fea058983a2ae37f05",
+  "features": [
+    "age",
+    "female",
+    "bmi"
+  ],
+  "label": "diabetes",
+  "models": "hist_gradient_boosting",
+  "seeds": "42,43,44,45,46,47,48,49,50,51",
+  "target_split_fractions": [
+    0.15,
+    0.15,
+    0.2,
+    0.1,
+    0.2,
+    0.2
+  ],
+  "alpha": 0.1,
+  "bootstrap": 1000,
+  "weight_clip": [
+    0.05,
+    20.0
+  ],
+  "gate_tolerance": 0.05,
+  "min_efficiency_gain": 0.02,
+  "cost_vectors": {
+    "default": [
+      1.0,
+      5.0,
+      0.5
+    ],
+    "balanced": [
+      1.0,
+      2.0,
+      0.5
+    ],
+    "high_referral": [
+      1.0,
+      5.0,
+      1.0
+    ]
+  },
+  "python": "3.11.18",
+  "source_rows": 411785,
+  "target_rows": 768,
+  "source_prevalence": 0.14499071117209222,
+  "target_prevalence": 0.3489583333333333,
+  "source_predictor_missingness": {
+    "age": 0.0,
+    "female": 0.0,
+    "bmi": 0.09297570334033536
+  },
+  "target_predictor_missingness": {
+    "age": 0.0,
+    "female": 0.0,
+    "bmi": 0.014322916666666666
+  },
+  "target_survey_design": false,
+  "selection_rule": "SHIFT-ATCP gate is determined on a labelled target gate partition; final test labels are never used.",
+  "coverage_note": "Known-ratio weighted conformal has a covariate-shift guarantee; estimated density ratios make source-weighted results approximate. Target-only split conformal/Mondrian is the validity baseline."
+}

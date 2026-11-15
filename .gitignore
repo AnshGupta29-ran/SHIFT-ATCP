@@ -46,3 +46,4 @@ results/**/split_manifest.csv
 .git.backup/
 .git.backup2/
 .gitignore.before-results-fix
+results/smoke_*/
